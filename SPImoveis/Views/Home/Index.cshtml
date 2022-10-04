@@ -1,0 +1,11 @@
+﻿@model List<SPImoveis.Models.Client>
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="row">
+    @foreach (var client in Model)
+            {
+                <span>@client.NomeContato</span>
+            }
+</div>
