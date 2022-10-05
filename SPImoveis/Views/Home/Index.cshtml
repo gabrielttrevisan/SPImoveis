@@ -1,11 +1,161 @@
-﻿@model List<SPImoveis.Models.Client>
-@{
+﻿@{
     ViewBag.Title = "Home Page";
 }
 
 <div class="row">
-    @foreach (var client in Model)
-            {
-                <span>@client.NomeContato</span>
-            }
+    <h1>Clientes</h1>
+
+    <table id="clients-table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Tipo</th>
+                <th>Nome</th>
+                <th>Cidade</th>
+                <th>Bairro</th>
+                <th>Logradouro</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        </tbody>
+    </table>
 </div>
+
+@section scripts {
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script>
+        class ActionLinkElement extends HTMLElement {
+            constructor() {
+                super();
+
+                const self = this;
+
+                this._action = window[this.action] || null;
+                this._hasValidAction = this._action !== null;
+                this._with = this.with || null;
+                this._hasValidWith = this._with !== null;
+
+                this.addEventListener('click', event => {
+                    if (this._hasValidAction) {
+                        if (this._hasValidWith) {
+                            this._action(this._with);
+                        } else {
+                            this._action();
+                        }
+                    }
+                });
+
+                const textContent = this.textContent;
+
+                this.textContent = '';
+                this.attachShadow({ mode: 'open' });
+
+                const style = document.createElement('style');
+
+                style.textContent = `
+                    :host {
+                        display: inline-block;
+                        cursor: pointer;
+                        height: auto;
+                        width: auto;
+                        padding: 2px 5px;
+                        transition: all .15s ease-in;
+                        color: ${this.type === 'normal' ? '#191970' : '#CD5C5C'};
+                    }
+                    :host(:hover) {
+                        color: ${this.type === 'normal' ? '#1E90FF' : '#B22222'};
+                    }
+                `;
+
+                this.shadowRoot.appendChild(style);
+                this.shadowRoot.innerHTML += textContent;
+            }
+
+            get loading() {
+                return this.hasAttribute('loading');
+            }
+
+            set loading(value) {
+                this.setAttribute('loading', value);
+            }
+
+            get action() {
+                return this.getAttribute('action');
+            }
+
+            set action(value) {
+                this.setAttribute('action', value);
+            }
+
+            get with() {
+                return this.getAttribute('with');
+            }
+
+            set with(value) {
+                this.setAttribute('with', value);
+            }
+
+            get type() {
+                return this.hasAttribute('type') ? this.getAttribute('type') : 'normal';
+            }
+
+            set type(value) {
+                if ([ 'normal', 'alert' ].indexOf(value) !== -1)
+                    this.setAttribute('type', value);
+            }
+        };
+
+        customElements.define('io-action', ActionLinkElement);
+    </script>
+    <script>
+        const deleteClient = id => {
+            $.ajax(`/Client/Delete/${id}`, {
+                method: 'POST',
+                success: response => {
+                    const row = clientsTable.rows(
+                        (index, data, element) => data.ClienteId === parseInt(id)
+                    );
+
+                    console.log(row, id);
+
+                    row.remove();
+
+                    clientsTable.draw();
+                }
+            });
+        };
+
+        window.deleteClient = deleteClient;
+
+        $(document).ready(() => {
+            window.clientsTable = $('#clients-table').DataTable({
+                ajax: '/Client',
+                columns: [
+                    { data: 'ClienteId' },
+                    { data: 'TipoCliente' },
+                    { data: 'NomeContato' },
+                    { data: 'Cidade' },
+                    { data: 'Bairro' },
+                    { data: 'Logradouro' },
+                    {
+                        data: 'ClienteId',
+                        render: (data, type) => {
+                            if (type === "display") {
+                                return `
+                                    <io-action action="deleteClient" with="${data}" type="alert">Excluir</io-action>
+                                    <io-action action="edit" with="${data}">Editar</io-action>
+                                `;
+                            }
+
+                            return data;
+                        },
+                        className: 'm100',
+                    }
+                ]
+            });
+        });
+    </script>
+}

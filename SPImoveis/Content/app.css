@@ -22,3 +22,10 @@ select,
 textarea {
     max-width: 280px;
 }
+
+.m100 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 10%;
+}

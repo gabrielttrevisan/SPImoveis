@@ -5,12 +5,12 @@ using System.Linq;
 using System.Web;
 using SPImoveis.Models;
 
-namespace SPImoveis.Entities
+namespace SPImoveis.Repositories
 {
-    public class ClientEntity : Entity<Client>
+    public class ClientRepository : Repository<Client>
     {
 
-        public ClientEntity() : base()
+        public ClientRepository() : base()
         {
         }
 
